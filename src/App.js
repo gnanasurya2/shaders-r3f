@@ -1,30 +1,36 @@
-import { useRef } from 'react'
+import { OrbitControls, hr } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { WaveMaterial } from './WaveMaterial'
 import { useControls } from 'leva'
-
-function ShaderPlane() {
-  const ref = useRef()
-
-  const { startColor, endColor } = useControls('Colors', {
-    startColor: '#7d7bff',
-    endColor: '#070a41'
-  })
-  const { width, height } = useThree((state) => state.viewport)
-  useFrame((state, delta) => (ref.current.time += delta))
-  return (
-    <mesh scale={[width, height, 1]}>
-      <planeGeometry args={[1, 1, 16, 16]} />
-      {/* We use the materials module 🔑 to allow HMR replace */}
-      <waveMaterial ref={ref} key={WaveMaterial.key} colorStart={startColor} colorEnd={endColor} />
-    </mesh>
-  )
-}
+import { useMemo } from 'react'
+import BasicShader from './shaders/Basic'
+import Blob from './shaders/Blob'
+import BasicParticles from './shaders/Points'
+import ShaderPlane from './shaders/ShaderPlane'
 
 export default function App() {
+  const shadersMap = ['BasicShader', 'ShaderPlane', 'BasicParticles', 'Blob']
+  const { shape1 } = useControls({
+    shape1: {
+      options: ['BasicShader', 'ShaderPlane', 'BasicParticles', 'Blob']
+    }
+  })
+  const shaders = useMemo(
+    () => ({
+      BasicShader: <BasicShader />,
+      ShaderPlane: <ShaderPlane />,
+      BasicParticles: <BasicParticles />,
+      Blob: <Blob />
+    }),
+    []
+  )
   return (
-    <Canvas dpr={[1, 2]}>
-      <ShaderPlane />
-    </Canvas>
+    <>
+      <Canvas dpr={[1, 2]} camera={{ position: [1.0, 1.5, 4.0] }}>
+        <color attach="background" args={['black']} />
+        {shaders[shape1]}
+        <OrbitControls />
+        <axesHelper />
+      </Canvas>
+    </>
   )
 }
